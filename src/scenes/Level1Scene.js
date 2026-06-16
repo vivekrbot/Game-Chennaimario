@@ -1,11 +1,20 @@
 import Phaser from 'phaser';
 import { GAME_WIDTH, GAME_HEIGHT, COLORS } from '../utils/constants.js';
 import Maari from '../entities/Maari.js';
+import AutoRickshaw from '../entities/AutoRickshaw.js';
+import CoffeeCup from '../entities/CoffeeCup.js';
 import { level1 } from '../data/levels.js';
 
 const GROUND_Y = 344;
 const TILE_SIZE = 32;
 const FALL_DEATH_Y = 400;
+const RICKSHAW_Y = GROUND_Y - 11;
+const RICKSHAW_SPAWNS = [
+  { x: 500, patrolRange: 200 },
+  { x: 1100, patrolRange: 180 },
+  { x: 1700, patrolRange: 150 },
+  { x: 2400, patrolRange: 200 },
+];
 
 export default class Level1Scene extends Phaser.Scene {
   constructor() {
@@ -21,10 +30,21 @@ export default class Level1Scene extends Phaser.Scene {
     this.buildPlatforms();
     this.buildPalmTrees();
 
+    this.buildRickshaws();
+    this.buildCoffees();
+
     this.maari = new Maari(this, this.level.spawn.x, this.level.spawn.y);
     this.maari.setDepth(10);
     this.physics.add.collider(this.maari, this.ground);
     this.physics.add.collider(this.maari, this.platforms);
+    this.physics.add.collider(
+      this.maari,
+      this.rickshaws,
+      this.handleRickshawCollision,
+      undefined,
+      this
+    );
+    this.physics.add.overlap(this.maari, this.coffees, (maari, cup) => cup.collect());
 
     this.cameras.main.setBounds(0, 0, this.level.worldWidth, GAME_HEIGHT);
     this.cameras.main.setDeadzone(100, 200);
@@ -84,6 +104,31 @@ export default class Level1Scene extends Phaser.Scene {
     }
   }
 
+  buildRickshaws() {
+    this.rickshaws = this.physics.add.group();
+    for (const { x, patrolRange } of RICKSHAW_SPAWNS) {
+      this.rickshaws.add(new AutoRickshaw(this, x, RICKSHAW_Y, patrolRange));
+    }
+    this.physics.add.collider(this.rickshaws, this.ground);
+  }
+
+  buildCoffees() {
+    this.coffees = this.physics.add.group();
+    for (const [x, y] of this.level.coffees) {
+      this.coffees.add(new CoffeeCup(this, x, y));
+    }
+  }
+
+  handleRickshawCollision(maari, rickshaw) {
+    if (maari.body.velocity.y > 0 && maari.y < rickshaw.y - 4) {
+      rickshaw.defeat();
+      maari.stomp();
+      this.events.emit('maari:stomped-enemy');
+    } else {
+      maari.die();
+    }
+  }
+
   respawnMaari() {
     this.maari.body.enable = true;
     this.maari.setPosition(this.level.spawn.x, this.level.spawn.y);
@@ -98,5 +143,7 @@ export default class Level1Scene extends Phaser.Scene {
     if (this.maari.body.enable && this.maari.y > FALL_DEATH_Y) {
       this.maari.die();
     }
+
+    this.rickshaws.getChildren().forEach((rickshaw) => rickshaw.update());
   }
 }
