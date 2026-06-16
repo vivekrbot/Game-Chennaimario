@@ -50,7 +50,7 @@ export default class Maari extends Phaser.Physics.Arcade.Sprite {
     }
   }
 
-  die() {
+  die(cause = 'enemy') {
     this.body.enable = false;
     this.setVelocity(0, -200);
     this.setAngularVelocity(0);
@@ -62,7 +62,7 @@ export default class Maari extends Phaser.Physics.Arcade.Sprite {
     });
     playSound(this.scene, 'hurt');
     this.scene.cameras.main.shake(200, 0.005);
-    this.scene.events.emit('maari:died');
+    this.scene.events.emit('maari:died', { x: this.x, cause });
   }
 
   stomp() {

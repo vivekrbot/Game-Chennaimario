@@ -5,6 +5,7 @@ import AutoRickshaw from '../entities/AutoRickshaw.js';
 import CoffeeCup from '../entities/CoffeeCup.js';
 import TouchControls from '../ui/TouchControls.js';
 import { addSound, playSound } from '../utils/audio.js';
+import { track } from '../utils/analytics.js';
 import { level1 } from '../data/levels.js';
 
 const GROUND_Y = 344;
@@ -72,6 +73,8 @@ export default class Level1Scene extends Phaser.Scene {
 
     this.bgm = addSound(this, 'bgm-beach', { loop: true, volume: 0.4 });
     if (this.bgm) this.bgm.play();
+
+    track('level_started', { level: 'marina-beach' });
   }
 
   buildBackground() {
@@ -146,7 +149,7 @@ export default class Level1Scene extends Phaser.Scene {
       maari.stomp();
       this.events.emit('maari:stomped-enemy');
     } else {
-      maari.die();
+      maari.die('enemy');
     }
   }
 
@@ -174,7 +177,7 @@ export default class Level1Scene extends Phaser.Scene {
     this.maari.update(this.cursors, this.touchControls.getInput());
 
     if (this.maari.body.enable && this.maari.y > FALL_DEATH_Y) {
-      this.maari.die();
+      this.maari.die('fall');
     }
 
     this.rickshaws.getChildren().forEach((rickshaw) => rickshaw.update());

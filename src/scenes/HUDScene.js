@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import ScoreDisplay from '../ui/ScoreDisplay.js';
+import { track } from '../utils/analytics.js';
 
 export default class HUDScene extends Phaser.Scene {
   constructor() {
@@ -9,15 +10,21 @@ export default class HUDScene extends Phaser.Scene {
   create() {
     this.scoreDisplay = new ScoreDisplay(this);
     this.buildMuteButton();
+    this.deaths = 0;
+    this.startTime = this.time.now;
 
     const level = this.scene.get('Level1Scene');
 
     level.events.on('coffee:collected', (value) => {
       this.scoreDisplay.addCoffee();
       this.scoreDisplay.addScore(value);
+      track('coffee_collected', { totalThisRun: this.scoreDisplay.coffeeCount });
     });
 
-    level.events.on('maari:died', () => {
+    level.events.on('maari:died', (data) => {
+      this.deaths += 1;
+      track('maari_died', { x: data && data.x, cause: data && data.cause });
+
       const remaining = this.scoreDisplay.loseLife();
       if (remaining <= 0) {
         this.scene.stop('Level1Scene');
@@ -32,6 +39,12 @@ export default class HUDScene extends Phaser.Scene {
 
     level.events.on('level:complete', () => {
       this.scoreDisplay.addScore(500);
+      track('level_completed', {
+        level: 'marina-beach',
+        score: this.scoreDisplay.score,
+        time: Math.round((this.time.now - this.startTime) / 1000),
+        deaths: this.deaths,
+      });
       this.scene.stop('Level1Scene');
       this.scene.stop('HUDScene');
       this.scene.start('MenuScene', { message: 'Level 1 cleared — Vanakkam!' });
