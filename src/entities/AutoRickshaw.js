@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { playSound } from '../utils/audio.js';
 
 export default class AutoRickshaw extends Phaser.Physics.Arcade.Sprite {
   constructor(scene, x, y, patrolRange) {
@@ -24,6 +25,8 @@ export default class AutoRickshaw extends Phaser.Physics.Arcade.Sprite {
   }
 
   defeat() {
+    playSound(this.scene, 'stomp');
+
     if (!this.scene.textures.exists('spark')) {
       const graphics = this.scene.add.graphics();
       graphics.fillStyle(0xffffff, 1);

@@ -4,6 +4,7 @@ import Maari from '../entities/Maari.js';
 import AutoRickshaw from '../entities/AutoRickshaw.js';
 import CoffeeCup from '../entities/CoffeeCup.js';
 import TouchControls from '../ui/TouchControls.js';
+import { addSound, playSound } from '../utils/audio.js';
 import { level1 } from '../data/levels.js';
 
 const GROUND_Y = 344;
@@ -57,7 +58,10 @@ export default class Level1Scene extends Phaser.Scene {
 
     this.cursors = this.input.keyboard.createCursorKeys();
     this.touchControls = new TouchControls();
-    this.events.once('shutdown', () => this.touchControls.destroy());
+    this.events.once('shutdown', () => {
+      this.touchControls.destroy();
+      if (this.bgm) this.bgm.stop();
+    });
 
     this.events.on('maari:died', () => {
       this.time.delayedCall(800, () => this.respawnMaari());
@@ -65,6 +69,9 @@ export default class Level1Scene extends Phaser.Scene {
 
     this.scene.stop('HUDScene');
     this.scene.launch('HUDScene');
+
+    this.bgm = addSound(this, 'bgm-beach', { loop: true, volume: 0.4 });
+    if (this.bgm) this.bgm.play();
   }
 
   buildBackground() {
@@ -148,6 +155,8 @@ export default class Level1Scene extends Phaser.Scene {
     this.levelComplete = true;
     this.maari.setVelocity(0, 0);
     this.maari.body.moves = false;
+    playSound(this, 'win');
+    if (this.bgm) this.bgm.stop();
     this.events.emit('level:complete');
   }
 

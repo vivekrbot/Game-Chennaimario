@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { PLAYER_SPEED, JUMP_VELOCITY } from '../utils/constants.js';
+import { playSound } from '../utils/audio.js';
 
 export default class Maari extends Phaser.Physics.Arcade.Sprite {
   constructor(scene, x, y) {
@@ -41,6 +42,7 @@ export default class Maari extends Phaser.Physics.Arcade.Sprite {
     if (jump && this.body.blocked.down) {
       this.setVelocityY(JUMP_VELOCITY);
       this.isJumping = true;
+      playSound(this.scene, 'jump');
     }
 
     if (this.body.blocked.down) {
@@ -58,6 +60,8 @@ export default class Maari extends Phaser.Physics.Arcade.Sprite {
       alpha: 0,
       duration: 500,
     });
+    playSound(this.scene, 'hurt');
+    this.scene.cameras.main.shake(200, 0.005);
     this.scene.events.emit('maari:died');
   }
 

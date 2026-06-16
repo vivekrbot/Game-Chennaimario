@@ -8,6 +8,7 @@ export default class HUDScene extends Phaser.Scene {
 
   create() {
     this.scoreDisplay = new ScoreDisplay(this);
+    this.buildMuteButton();
 
     const level = this.scene.get('Level1Scene');
 
@@ -34,6 +35,19 @@ export default class HUDScene extends Phaser.Scene {
       this.scene.stop('Level1Scene');
       this.scene.stop('HUDScene');
       this.scene.start('MenuScene', { message: 'Level 1 cleared — Vanakkam!' });
+    });
+  }
+
+  buildMuteButton() {
+    const muteButton = this.add
+      .text(this.scale.width - 12, 28, this.sound.mute ? '🔇' : '🔊', { fontSize: '14px' })
+      .setOrigin(1, 0)
+      .setScrollFactor(0)
+      .setInteractive({ useHandCursor: true });
+
+    muteButton.on('pointerdown', () => {
+      this.sound.mute = !this.sound.mute;
+      muteButton.setText(this.sound.mute ? '🔇' : '🔊');
     });
   }
 }

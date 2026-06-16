@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { playSound } from '../utils/audio.js';
 
 export default class CoffeeCup extends Phaser.Physics.Arcade.Sprite {
   constructor(scene, x, y) {
@@ -19,6 +20,7 @@ export default class CoffeeCup extends Phaser.Physics.Arcade.Sprite {
   }
 
   collect() {
+    playSound(this.scene, 'coffee');
     this.scene.events.emit('coffee:collected', 10);
     this.destroy();
   }

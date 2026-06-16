@@ -12,6 +12,11 @@ const SPRITES = {
   cloud: { width: 48, height: 20 },
 };
 
+// CC0 sources for these: freesound.org, Pixabay Audio, FreePD.com.
+// Missing files are skipped gracefully at playback time (src/utils/audio.js)
+// rather than crashing, so the game runs fine before real audio is added.
+const AUDIO_KEYS = ['jump', 'coffee', 'stomp', 'hurt', 'win', 'bgm-beach'];
+
 export default class BootScene extends Phaser.Scene {
   constructor() {
     super('BootScene');
@@ -42,6 +47,10 @@ export default class BootScene extends Phaser.Scene {
 
     for (const key of Object.keys(SPRITES)) {
       this.load.image(key, `assets/sprites/${key}.png`);
+    }
+
+    for (const key of AUDIO_KEYS) {
+      this.load.audio(key, `assets/audio/${key}.mp3`);
     }
   }
 
