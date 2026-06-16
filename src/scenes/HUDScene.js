@@ -1,0 +1,39 @@
+import Phaser from 'phaser';
+import ScoreDisplay from '../ui/ScoreDisplay.js';
+
+export default class HUDScene extends Phaser.Scene {
+  constructor() {
+    super('HUDScene');
+  }
+
+  create() {
+    this.scoreDisplay = new ScoreDisplay(this);
+
+    const level = this.scene.get('Level1Scene');
+
+    level.events.on('coffee:collected', (value) => {
+      this.scoreDisplay.addCoffee();
+      this.scoreDisplay.addScore(value);
+    });
+
+    level.events.on('maari:died', () => {
+      const remaining = this.scoreDisplay.loseLife();
+      if (remaining <= 0) {
+        this.scene.stop('Level1Scene');
+        this.scene.stop('HUDScene');
+        this.scene.start('GameOverScene', { score: this.scoreDisplay.score });
+      }
+    });
+
+    level.events.on('maari:stomped-enemy', () => {
+      this.scoreDisplay.addScore(50);
+    });
+
+    level.events.on('level:complete', () => {
+      this.scoreDisplay.addScore(500);
+      this.scene.stop('Level1Scene');
+      this.scene.stop('HUDScene');
+      this.scene.start('MenuScene', { message: 'Level 1 cleared — Vanakkam!' });
+    });
+  }
+}

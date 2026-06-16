@@ -15,6 +15,7 @@ const RICKSHAW_SPAWNS = [
   { x: 1700, patrolRange: 150 },
   { x: 2400, patrolRange: 200 },
 ];
+const FLAG_X = 3100;
 
 export default class Level1Scene extends Phaser.Scene {
   constructor() {
@@ -23,12 +24,14 @@ export default class Level1Scene extends Phaser.Scene {
 
   create() {
     this.level = level1;
+    this.levelComplete = false;
     this.physics.world.setBounds(0, 0, this.level.worldWidth, GAME_HEIGHT);
 
     this.buildBackground();
     this.buildTerrain();
     this.buildPlatforms();
     this.buildPalmTrees();
+    this.buildFlag();
 
     this.buildRickshaws();
     this.buildCoffees();
@@ -45,6 +48,7 @@ export default class Level1Scene extends Phaser.Scene {
       this
     );
     this.physics.add.overlap(this.maari, this.coffees, (maari, cup) => cup.collect());
+    this.physics.add.overlap(this.maari, this.flag, () => this.handleLevelComplete(), undefined, this);
 
     this.cameras.main.setBounds(0, 0, this.level.worldWidth, GAME_HEIGHT);
     this.cameras.main.setDeadzone(100, 200);
@@ -55,6 +59,9 @@ export default class Level1Scene extends Phaser.Scene {
     this.events.on('maari:died', () => {
       this.time.delayedCall(800, () => this.respawnMaari());
     });
+
+    this.scene.stop('HUDScene');
+    this.scene.launch('HUDScene');
   }
 
   buildBackground() {
@@ -104,6 +111,10 @@ export default class Level1Scene extends Phaser.Scene {
     }
   }
 
+  buildFlag() {
+    this.flag = this.physics.add.staticImage(FLAG_X, GROUND_Y, 'flag').setOrigin(0.5, 1);
+  }
+
   buildRickshaws() {
     this.rickshaws = this.physics.add.group();
     for (const { x, patrolRange } of RICKSHAW_SPAWNS) {
@@ -129,6 +140,14 @@ export default class Level1Scene extends Phaser.Scene {
     }
   }
 
+  handleLevelComplete() {
+    if (this.levelComplete) return;
+    this.levelComplete = true;
+    this.maari.setVelocity(0, 0);
+    this.maari.body.moves = false;
+    this.events.emit('level:complete');
+  }
+
   respawnMaari() {
     this.maari.body.enable = true;
     this.maari.setPosition(this.level.spawn.x, this.level.spawn.y);
@@ -138,6 +157,8 @@ export default class Level1Scene extends Phaser.Scene {
   }
 
   update() {
+    if (this.levelComplete) return;
+
     this.maari.update(this.cursors);
 
     if (this.maari.body.enable && this.maari.y > FALL_DEATH_Y) {
