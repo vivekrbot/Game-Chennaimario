@@ -14,5 +14,9 @@ export default class MenuScene extends Phaser.Scene {
         color: '#ffffff',
       })
       .setOrigin(0.5);
+
+    this.input.keyboard.once('keydown-SPACE', () => {
+      this.scene.start('Level1Scene');
+    });
   }
 }
